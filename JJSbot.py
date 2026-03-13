@@ -3,32 +3,42 @@ import discord
 from discord.ext import commands
 from discord.ui import Button, View
 
+# --------------------
+# BOT SETUP
+# --------------------
 intents = discord.Intents.default()
 intents.message_content = True
 intents.guilds = True
 intents.members = True  # Needed to manage roles
 
 bot = commands.Bot(command_prefix="!", intents=intents)
-
 TOKEN = os.getenv("TOKEN")
 
-# Replace with your actual Discord role IDs
-ROLE_1_ID = 1481860625133994137 # Role for Button 1
-ROLE_2_ID = 1481858489889587283 # Role for Button 2
-ROLE_3_ID = 1481858442066006128  # Role for Button 3
+# --------------------
+# ROLE IDS (replace with your server role IDs)
+# --------------------
+ROLE_1_ID = 1481860625133994137  # Replace with your first role ID
+ROLE_2_ID = 1481858489889587283 # Replace with your second role ID
+ROLE_3_ID = 1481858442066006128  # Replace with your third role ID
 
+# --------------------
+# EVENTS
+# --------------------
 @bot.event
 async def on_ready():
     print(f"Bot is online as {bot.user}")
 
+# --------------------
+# COMMAND TO SEND BUTTONS EMBED
+# --------------------
 @bot.command()
 async def roles(ctx):
-    # Create buttons
+    # --- CREATE BUTTONS ---
     button1 = Button(label="Role 1", style=discord.ButtonStyle.primary)
     button2 = Button(label="Role 2", style=discord.ButtonStyle.success)
     button3 = Button(label="Role 3", style=discord.ButtonStyle.danger)
 
-    # Button callback helper
+    # --- ROLE ASSIGN FUNCTION ---
     async def assign_role(interaction, role_id):
         guild = interaction.guild
         member = interaction.user
@@ -53,26 +63,37 @@ async def roles(ctx):
                 f"You already have the role: **{selected_role.name}**", ephemeral=True
             )
 
-    # Assign callbacks
-    button1.callback = lambda i: assign_role(i, ROLE_1_ID)
-    button2.callback = lambda i: assign_role(i, ROLE_2_ID)
-    button3.callback = lambda i: assign_role(i, ROLE_3_ID)
+    # --- ASSIGN CALLBACKS PROPERLY ---
+    async def button1_callback(interaction):
+        await assign_role(interaction, ROLE_1_ID)
 
-    # Add buttons to a view
+    async def button2_callback(interaction):
+        await assign_role(interaction, ROLE_2_ID)
+
+    async def button3_callback(interaction):
+        await assign_role(interaction, ROLE_3_ID)
+
+    button1.callback = button1_callback
+    button2.callback = button2_callback
+    button3.callback = button3_callback
+
+    # --- ADD BUTTONS TO VIEW ---
     view = View()
     view.add_item(button1)
     view.add_item(button2)
     view.add_item(button3)
 
-    # Create an embed
+    # --- CREATE EMBED ---
     embed = discord.Embed(
-        title="Choose Your Skill Level.",
-        description="Pick a role based on your skill level."
-                    "You may only have one role.",
-        color=discord.Color.yellow()
+        title="Choose Your Role",
+        description="Click a button to assign yourself **one role** from this set. "
+                    "Other roles will be removed automatically.",
+        color=discord.Color.blue()
     )
 
-    # Send the embed with buttons
     await ctx.send(embed=embed, view=view)
 
+# --------------------
+# RUN BOT
+# --------------------
 bot.run(TOKEN)
