@@ -39,7 +39,8 @@ async def roles(ctx):
     button3 = Button(label="Role 3", style=discord.ButtonStyle.danger)
 
     # --- ROLE ASSIGN FUNCTION ---
-    async def assign_role(interaction, role_id):
+   async def assign_role(interaction, role_id):
+    try:
         guild = interaction.guild
         member = interaction.user
         roles = [
@@ -47,11 +48,9 @@ async def roles(ctx):
             guild.get_role(ROLE_2_ID),
             guild.get_role(ROLE_3_ID)
         ]
-        # Remove other roles
         for r in roles:
             if r.id != role_id and r in member.roles:
                 await member.remove_roles(r)
-        # Add selected role
         selected_role = guild.get_role(role_id)
         if selected_role not in member.roles:
             await member.add_roles(selected_role)
@@ -62,6 +61,11 @@ async def roles(ctx):
             await interaction.response.send_message(
                 f"You already have the role: **{selected_role.name}**", ephemeral=True
             )
+    except Exception as e:
+        print(f"[ERROR] Failed to assign role: {e}")
+        await interaction.response.send_message(
+            "Something went wrong! Check bot permissions and role hierarchy.", ephemeral=True
+        )
 
     # --- ASSIGN CALLBACKS PROPERLY ---
     async def button1_callback(interaction):
